@@ -1,0 +1,9 @@
+#latest version of openai works (1.31.0) 
+#some of the original embeddings done in openai(0.27.4)
+openai==1.31.0
+flask
+python-dotenv==0.21.0
+requests
+qdrant-client==1.9.1
+yfinance==0.2.40
+flask-cors
