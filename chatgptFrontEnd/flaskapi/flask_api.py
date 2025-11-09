@@ -1,22 +1,12 @@
-from dotenv import load_dotenv
-import os
-import openai
-import chatgpt_ai.openai
 from flask import Flask, request, jsonify
-from chatgpt_ai.openai import chatgpt_response
-from utils import get_embeddings, search_for_context, form_prompt, qdrant_client
+from claude_ai.claude import claude_answer
+from chatgpt_ai.openai import chatgpt_evaluate
 from flask_cors import CORS
 
 # Initialize Flask app
 app = Flask(__name__)
 
 CORS(app)
-
-# Load environment variables from a .env file
-load_dotenv()
-
-# Set OpenAI API key from environment variables
-api_key = chatgpt_ai.openai.api_key
 
 @app.route('/process', methods=['POST'])
 def process_message():
@@ -34,16 +24,9 @@ def process_message():
     #Proceed only if a valid command was detected
     clean_question = user_message.strip()
 
-    search_vector = get_embeddings(clean_question)
-    try:
-        contexts = search_for_context(qdrant_client(), "Fed_Speeches", search_vector)
-    except Exception as e:
-        print("Unable to get context.",e)
-        return jsonify({"error": f"Qdrant connection failed: {e}"}), 500
-    prompt = form_prompt(contexts, clean_question)
+    claude_response = claude_answer(clean_question)
 
-    client2 = chatgpt_ai.openai.client
+    chatgpt_response = chatgpt_evaluate(clean_question, claude_response)
 
-    bot_response = chatgpt_response(prompt,client2)
-
-    return jsonify({"message": bot_response})
+    return jsonify({"answer": claude_response,
+        "evaluation": chatgpt_response})
